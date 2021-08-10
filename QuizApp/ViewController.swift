@@ -167,7 +167,7 @@ class ViewController: UIViewController, QuizProtocol, UITableViewDelegate, UITab
         // 獲得 cell
         let cell = tableView.dequeueReusableCell(withIdentifier: "ChoiceCell", for: indexPath)
         
-        // 客製 cell 並轉型成 label
+        // Label Tag 為 1 的 cell 轉型成 label
         let label = cell.viewWithTag(1) as? UILabel
         
         // 設定標籤的選項文字
