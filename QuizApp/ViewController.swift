@@ -145,7 +145,7 @@ class ViewController: UIViewController, QuizProtocol, UITableViewDelegate, UITab
         displayQuestion()
     }
     
-    // MARK: - UITableViewDelegate Methods
+    // MARK: - UITableViewDatasourse Methods
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
         // 確保 questions 陣列至少包含一個 Question
@@ -182,7 +182,7 @@ class ViewController: UIViewController, QuizProtocol, UITableViewDelegate, UITab
         return cell
     }
     
-    // MARK: - UITableViewDatasource Methods
+    // MARK: - UITableViewDelegate Methods
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         var titleText = ""
