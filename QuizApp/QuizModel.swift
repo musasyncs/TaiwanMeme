@@ -29,17 +29,14 @@ class QuizModel {
     }
     
     func getLocalJsonFile() {
-        // 得到 json file 的 bundle path
-        let path = Bundle.main.path(forResource: "QuestionData", ofType: "json")
-        
-        // 確認 path 不為 nil
-        guard path != nil else {
+        // 得到 json file 的 bundle path，且保證 path 不為 nil
+        guard let path = Bundle.main.path(forResource: "QuestionData", ofType: "json") else {
             print("Cannot find json file.")
             return
         }
         
-        // 傳進 path 創造 URL 物件 url
-        let url = URL(fileURLWithPath: path!)
+        // 傳進 path，創造 URL 物件： url
+        let url = URL(fileURLWithPath: path)
         
         do {
             // 從 url 取得 data
