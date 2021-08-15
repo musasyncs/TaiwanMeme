@@ -7,12 +7,12 @@
 
 import UIKit
 
-class ViewController: UIViewController, QuizProtocol, UITableViewDelegate, UITableViewDataSource, ResultViewControllerProtocol {
+class ViewController: UIViewController {
     
     @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var questionImageView: UIImageView!
     @IBOutlet weak var tableView: UITableView!
-
+    
     // For Animation
     @IBOutlet weak var stackViewLeadingConstraint: NSLayoutConstraint!
     @IBOutlet weak var stackViewTrailingConstraint: NSLayoutConstraint!
@@ -119,9 +119,77 @@ class ViewController: UIViewController, QuizProtocol, UITableViewDelegate, UITab
         /// slide in the questions
         slideInQuestion()
     }
+}
+
+
+// MARK: - UITableViewDatasourse Methods
+extension ViewController: UITableViewDataSource {
     
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
+        // 確保有選項陣列，回傳選項個數。沒有選項則回傳 0
+        guard let choices = questions[currentQuestionIndex].choices else {
+            return 0
+        }
+        return choices.count
+    }
     
-    // MARK: - QuizProtocol Methods
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ChoiceCell", for: indexPath)
+        
+        // cell(with Label Tag 1) 轉型成 label
+        let label = cell.viewWithTag(1) as? UILabel
+        
+        // 設定標籤的選項文字
+        if let label = label, let choices = questions[currentQuestionIndex].choices {
+            label.text = choices[indexPath.row]
+        }
+        
+        return cell
+    }
+}
+
+// MARK: - UITableViewDelegate Methods
+extension ViewController: UITableViewDelegate {
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        var titleText = ""
+        let question = questions[currentQuestionIndex]
+        
+        // 使用者點到一個 row，檢查是否為正解
+        if question.correctAnswerIndex! == indexPath.row {
+            titleText = "答對了"
+            numQuestionCorrect += 1
+        } else {
+            titleText = "答錯了"
+        }
+        
+        /// slide out the question
+        DispatchQueue.main.async {
+            self.slideOutQuestion()
+        }
+        
+        // resultDialogVC 的 properties 們被傳入資料
+        resultDialogVC?.resultTitleText = titleText
+        resultDialogVC?.feedbackText = question.feedback
+        
+        if currentQuestionIndex == questions.count - 1 {
+            resultDialogVC?.buttonText = "查看結果"
+        } else if currentQuestionIndex < questions.count - 1 {
+            resultDialogVC?.buttonText = "下一題"
+        }
+        
+        // Show the popup
+        DispatchQueue.main.async {
+            self.present(self.resultDialogVC!, animated: true, completion: nil)
+        }
+    }
+}
+
+// MARK: - QuizProtocol Methods
+extension ViewController: QuizProtocol {
     func questionsRetrieved(_ questions: [Question]) {
         
         print("收到題目！")
@@ -144,80 +212,10 @@ class ViewController: UIViewController, QuizProtocol, UITableViewDelegate, UITab
         // 顯示問題
         displayQuestion()
     }
-    
-    // MARK: - UITableViewDatasourse Methods
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        // 確保 questions 陣列至少包含一個 Question
-        guard questions.count > 0 else {
-            return 0
-        }
-        
-        // return 這個問題的 choices 數
-        let currentQuestion = questions[currentQuestionIndex]
-        
-        if currentQuestion.choices != nil {
-            return currentQuestion.choices!.count
-        } else {
-            return 0
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // 獲得 cell
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ChoiceCell", for: indexPath)
-        
-        // Label Tag 為 1 的 cell 轉型成 label
-        let label = cell.viewWithTag(1) as? UILabel
-        
-        // 設定標籤的選項文字
-        if label != nil {
-            let question = questions[currentQuestionIndex]
-            if question.choices != nil && indexPath.row < question.choices!.count {
-                label!.text = question.choices![indexPath.row]
-            }
-        }
-        
-        // return cell
-        return cell
-    }
-    
-    // MARK: - UITableViewDelegate Methods
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        var titleText = ""
-        let question = questions[currentQuestionIndex]
-        
-        // 使用者點到一個 row，檢查是否為正解
-        if question.correctAnswerIndex! == indexPath.row {
-            titleText = "答對了"
-            numQuestionCorrect += 1
-        } else {
-            titleText = "答錯了"
-        }
-        
-        /// slide out the question
-        DispatchQueue.main.async {
-            self.slideOutQuestion()
-        }
-                    
-        // resultDialogVC 的 properties 們被傳入資料
-        resultDialogVC?.resultTitleText = titleText
-        resultDialogVC?.feedbackText = question.feedback
-        
-        if currentQuestionIndex == questions.count - 1 {
-            resultDialogVC?.buttonText = "查看結果"
-        } else if currentQuestionIndex < questions.count - 1 {
-            resultDialogVC?.buttonText = "下一題"
-        }
-        
-        // Show the popup
-        DispatchQueue.main.async {
-            self.present(self.resultDialogVC!, animated: true, completion: nil)
-        }
-    }
-    
-    // MARK: - ResultViewControllerProtocol Methods
+}
+
+// MARK: - ResultViewControllerProtocol Methods
+extension ViewController: ResultViewControllerProtocol {
     func dialogDismissed() {
         
         // 題目指標 + 1
@@ -230,7 +228,7 @@ class ViewController: UIViewController, QuizProtocol, UITableViewDelegate, UITab
             resultDialogVC?.resultTitleText = "測驗結果"
             resultDialogVC?.feedbackText = "您在 \(questions.count) 題中，答對了 \(numQuestionCorrect) 題。總分為 \(numQuestionCorrect * 5) 分。"
             resultDialogVC?.buttonText = "再玩一次"
-                
+            
             // 顯示總結對話窗
             present(resultDialogVC!, animated: true, completion: nil)
             
