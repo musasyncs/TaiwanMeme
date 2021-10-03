@@ -31,9 +31,6 @@ class ViewController: UIViewController {
         // 設定 ViewController 為 tableView 的 delegate 和 dataSource
         tableView.delegate = self
         tableView.dataSource = self
-        // 遇到 cell 沒有因應文字變多而自動變高的解決方法
-        tableView.estimatedRowHeight = 100
-        tableView.rowHeight = UITableView.automaticDimension
         
         // 設定 ViewController 為 QuizModel 的 delegate
         model.delegate = self
