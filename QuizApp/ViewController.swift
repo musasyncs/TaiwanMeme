@@ -8,6 +8,11 @@
 import UIKit
 
 class ViewController: UIViewController {
+    var model = QuizModel()
+    var questions = [Question]()
+    var currentQuestionIndex = 0 // 目前在第幾題
+    var numQuestionCorrect = 0 // 目前答對題數
+    var resultDialogVC: ResultViewController?
     
     @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var questionImageView: UIImageView!
@@ -17,30 +22,15 @@ class ViewController: UIViewController {
     @IBOutlet weak var stackViewLeadingConstraint: NSLayoutConstraint!
     @IBOutlet weak var stackViewTrailingConstraint: NSLayoutConstraint!
     @IBOutlet weak var rootStackView: UIStackView!
-    
-    
-    var model = QuizModel()
-    var questions = [Question]()
-    
-    // 目前在第幾題
-    var currentQuestionIndex = 0
-    // 目前答對題數
-    var numQuestionCorrect = 0
-    
-    // 宣告 resultDialogVC
-    var resultDialogVC: ResultViewController?
-    
+            
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        //畫漸層背景
         createGradientBackground()
         
         // 設定 ViewController 為 tableView 的 delegate 和 dataSource
         tableView.delegate = self
         tableView.dataSource = self
-        
         // 遇到 cell 沒有因應文字變多而自動變高的解決方法
         tableView.estimatedRowHeight = 100
         tableView.rowHeight = UITableView.automaticDimension
@@ -53,7 +43,6 @@ class ViewController: UIViewController {
         // 初始化 resultDialogVC
         resultDialogVC = storyboard?.instantiateViewController(identifier: "ResultVC") as? ResultViewController
         resultDialogVC?.modalPresentationStyle = .overCurrentContext
-        
         // resultDialogVC 的 delegate 是 ViewController
         resultDialogVC?.delegate = self
     }
@@ -107,13 +96,8 @@ class ViewController: UIViewController {
     }
     
     func displayQuestion() {
-        // 吃到問題的圖片
         questionImageView.image = UIImage(imageLiteralResourceName: "\(currentQuestionIndex+1)")
-        
-        // 吃到問題的 text
-        questionLabel.text = questions[currentQuestionIndex].questionName
-        
-        // table view 重新載入資料
+        questionLabel.text      = questions[currentQuestionIndex].questionName
         tableView.reloadData()
         
         /// slide in the questions
@@ -124,10 +108,7 @@ class ViewController: UIViewController {
 
 // MARK: - UITableViewDatasourse Methods
 extension ViewController: UITableViewDataSource {
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        // 確保有選項陣列，回傳選項個數。沒有選項則回傳 0
         guard let choices = questions[currentQuestionIndex].choices else {
             return 0
         }
@@ -135,30 +116,23 @@ extension ViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
         let cell = tableView.dequeueReusableCell(withIdentifier: "ChoiceCell", for: indexPath)
-        
-        // cell(with Label Tag 1) 轉型成 label
-        let label = cell.viewWithTag(1) as? UILabel
-        
-        // 設定標籤的選項文字
-        if let label = label, let choices = questions[currentQuestionIndex].choices {
-            label.text = choices[indexPath.row]
+        let label = cell.viewWithTag(1) as? UILabel // cell(with Label Tag 1) 轉型成 label
+        if let label = label,
+           let choices = questions[currentQuestionIndex].choices {
+            label.text = choices[indexPath.row] // 設定標籤的選項文字
         }
-        
         return cell
     }
 }
 
 // MARK: - UITableViewDelegate Methods
 extension ViewController: UITableViewDelegate {
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
         var titleText = ""
         let question = questions[currentQuestionIndex]
         
-        // 使用者點到一個 row，檢查是否為正解
+        // 檢查是否為正解
         if question.correctAnswerIndex! == indexPath.row {
             titleText = "答對了"
             numQuestionCorrect += 1
@@ -171,9 +145,9 @@ extension ViewController: UITableViewDelegate {
             self.slideOutQuestion()
         }
         
-        // resultDialogVC 的 properties 們被傳入資料
+        // resultDialogVC 的屬性們被傳入資料
         resultDialogVC?.resultTitleText = titleText
-        resultDialogVC?.feedbackText = question.feedback
+        resultDialogVC?.feedbackText    = question.feedback
         
         if currentQuestionIndex == questions.count - 1 {
             resultDialogVC?.buttonText = "查看結果"
@@ -181,7 +155,6 @@ extension ViewController: UITableViewDelegate {
             resultDialogVC?.buttonText = "下一題"
         }
         
-        // Show the popup
         DispatchQueue.main.async {
             self.present(self.resultDialogVC!, animated: true, completion: nil)
         }
@@ -191,10 +164,9 @@ extension ViewController: UITableViewDelegate {
 // MARK: - QuizProtocol Methods
 extension ViewController: QuizProtocol {
     func questionsRetrieved(_ questions: [Question]) {
-        
         print("收到題目！")
         
-        // ViewController 的 questions 屬性接收參數的陣列
+        // ViewController 的 questions 屬性接收參數 questions
         self.questions = questions
         
         /// 檢查是否有已儲存的 savedIndex, savedNumCorrect
@@ -205,49 +177,35 @@ extension ViewController: QuizProtocol {
         }
         let savedNumCorrect = StateManager.retrieveValue(key: StateManager.numCorrectKey) as? Int
         if savedNumCorrect != nil {
-            // 設定已答對題數為儲存的 savedNumCorrect
-            numQuestionCorrect = savedNumCorrect!
+            numQuestionCorrect = savedNumCorrect! // 設定已答對題數為儲存的 savedNumCorrect
         }
         
-        // 顯示問題
-        displayQuestion()
+        displayQuestion() // 顯示問題
     }
 }
 
 // MARK: - ResultViewControllerProtocol Methods
 extension ViewController: ResultViewControllerProtocol {
     func dialogDismissed() {
-        
-        // 題目指標 + 1
         currentQuestionIndex += 1
         
+        // 沒下一題了，
         if currentQuestionIndex == questions.count {
-            // 沒下一題了
-            
-            // resultDialogVC 的 properties 們被傳入資料
             resultDialogVC?.resultTitleText = "測驗結果"
             resultDialogVC?.feedbackText = "您在 \(questions.count) 題中，答對了 \(numQuestionCorrect) 題。總分為 \(numQuestionCorrect * 5) 分。"
             resultDialogVC?.buttonText = "再玩一次"
-            
-            // 顯示總結對話窗
             present(resultDialogVC!, animated: true, completion: nil)
             
             /// 跳出總結對話窗後，清除已儲存狀態
             StateManager.clearState()
             
-        } else if currentQuestionIndex > questions.count {
-            // 在總結對話窗按"Restart"之後，要回到第一題
-            
-            // 指標回到第1題
-            currentQuestionIndex = 0
-            // 答對題數歸零
-            numQuestionCorrect = 0
-            // 顯示問題
-            displayQuestion()
+        } else if currentQuestionIndex > questions.count { // 在總結對話窗按"Restart"之後，要回到第一題
+            currentQuestionIndex = 0 // 指標回到第1題
+            numQuestionCorrect = 0 // 答對題數歸零
+            displayQuestion() // 顯示問題
             
         } else if currentQuestionIndex < questions.count {
-            // 顯示問題
-            displayQuestion()
+            displayQuestion() // 顯示問題
             
             /// 顯示問題之後，儲存答對題數和題目index
             StateManager.saveState(numCorrect: numQuestionCorrect, questionIndex: currentQuestionIndex)

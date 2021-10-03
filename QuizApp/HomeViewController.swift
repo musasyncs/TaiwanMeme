@@ -14,7 +14,6 @@ class HomeViewController: UIViewController {
     }
     
     @IBAction func startGame() {
-        
         let vc = storyboard?.instantiateViewController(identifier: "view") as! ViewController
         vc.modalPresentationStyle = .fullScreen
         vc.modalTransitionStyle = .crossDissolve

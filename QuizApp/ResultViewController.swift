@@ -12,13 +12,6 @@ protocol ResultViewControllerProtocol {
 }
 
 class ResultViewController: UIViewController {
-
-    @IBOutlet weak var dimView: UIView!
-    @IBOutlet weak var dialogView: UIView!
-    @IBOutlet weak var resultTitleLabel: UILabel!
-    @IBOutlet weak var feedbackTextView: UITextView!
-    @IBOutlet weak var nextButton: UIButton!
-    
     var resultTitleText: String!
     var feedbackText: String!
     var buttonText: String!
@@ -26,16 +19,20 @@ class ResultViewController: UIViewController {
     // 宣告 ResultViewController 的 delegate（將是 view controller）
     var delegate: ResultViewControllerProtocol?
     
+    @IBOutlet weak var dimView: UIView!
+    @IBOutlet weak var dialogView: UIView!
+    @IBOutlet weak var resultTitleLabel: UILabel!
+    @IBOutlet weak var feedbackTextView: UITextView!
+    @IBOutlet weak var nextButton: UIButton!
     
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // 對話窗變圓角
         dialogView.layer.cornerRadius = 10
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        // 元件被載入後，用「帶有前一頁資料的屬性」更新元件
+        //顯示
         resultTitleLabel.text = resultTitleText
         feedbackTextView.text = feedbackText
         nextButton.setTitle(buttonText, for: .normal)

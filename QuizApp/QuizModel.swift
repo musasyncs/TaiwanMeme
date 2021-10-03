@@ -12,8 +12,7 @@ protocol QuizProtocol {
 }
 
 class QuizModel {
-    // 宣告 delegate 屬性（將是 ViewController）
-    var delegate: QuizProtocol?
+    var delegate: QuizProtocol? // 宣告 delegate 屬性（將是 ViewController）
     
     /*
      抓題目的方法。
@@ -29,27 +28,21 @@ class QuizModel {
     }
     
     func getLocalJsonFile() {
-        // 得到 json file 的 bundle path，且保證 path 不為 nil
         guard let path = Bundle.main.path(forResource: "QuestionData", ofType: "json") else {
             print("Cannot find json file.")
             return
         }
-        
-        // 傳進 path，創造 URL 物件： url
         let url = URL(fileURLWithPath: path)
-        
         do {
-            // 從 url 取得 data
             let data = try Data(contentsOf: url)
-            
-            // 用 JSON Decoder 物件把 data decode 成 Question struct 物件陣列
+            // 用 JSON Decoder 物件把 data decode 成 Question 陣列
             let array = try JSONDecoder().decode([Question].self, from: data)
             
             // delegate 使用 questionRetrieved() 方法得到題目、顯示題目
             delegate?.questionsRetrieved(array)
         }
         catch {
-            print("無法從 url 取得 data")
+            print("無法從 url 取得 data，或解碼失敗")
         }
     }
 }
